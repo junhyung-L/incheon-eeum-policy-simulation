@@ -98,7 +98,11 @@ python run_pipeline.py `
 ```
 
 Writes features, per-district metrics, and models to `results/`; `--help`
-lists all options.
+lists all options. The notebooks ran on Google Colab (Python 3.11: `02`, `03`,
+`99_draft_2`) and a local Python 3.12.4 environment (`01`, `04`–`08`).
+`requirements.txt` pins numpy, scipy, and scikit-learn to the versions the
+`03` notebook records; pandas is pinned to the 2026-11 review environment and
+catboost is unpinned, because their original versions were not recorded.
 
 ## Repository layout
 

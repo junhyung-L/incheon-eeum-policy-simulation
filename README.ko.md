@@ -68,7 +68,7 @@ python run_pipeline.py `
   --target-col "<소비 타깃 컬럼>"
 ```
 
-피처, 군·구별 지표, 모델을 `results/`에 저장하며, 전체 옵션은 `--help`로 확인합니다.
+피처, 군·구별 지표, 모델을 `results/`에 저장하며, 전체 옵션은 `--help`로 확인합니다. 노트북은 Google Colab(Python 3.11: `02`, `03`, `99_draft_2`)과 로컬 Python 3.12.4 환경(`01`, `04`~`08`)에서 실행했습니다. `requirements.txt`는 numpy·scipy·scikit-learn을 `03` 노트북에 기록된 버전으로 고정했고, 원래 버전 기록이 없는 pandas는 2026-11 점검 환경 버전으로 고정, catboost는 고정하지 않았습니다.
 
 ## 저장소 구조
 

@@ -1,5 +1,9 @@
-pandas
-numpy
-scikit-learn
-scipy
+# numpy, scipy, scikit-learn: versions recorded in notebooks/03_feature_engineering.ipynb pip output
+# (Google Colab, Python 3.11).
+numpy==2.0.2
+scipy==1.15.2
+scikit-learn==1.6.1
+# pandas: pinned to the environment used for the 2026-11 review; original run versions were not recorded.
+pandas==3.0.1
+# catboost: not recorded and not installed in the review environment, so left unpinned.
 catboost
