@@ -6,18 +6,18 @@ Forecasts daily e-Eum card spending per Incheon district and compares
 cashback schedules under a fixed budget. (e-Eum is Incheon's local-currency
 payment card; cashback is the city's spending incentive.)
 
-**Decision question.** If a KRW 200 billion budget allows a higher cashback
-rate in only two months of 2024, which two months buy the most consumption per
-won of cashback?
+**Problem.** If a KRW 200 billion budget allows a higher cashback rate in only
+two months of 2024, which two months buy the most consumption per won of
+cashback?
 
 **Result.** Compares all C(12,2) = 66 two-month combinations. Every one of the
-top five includes April, June, or September; April + June ranks first (report
-ROI index 76.433, against 73.293 for fifth place). It is a shortlist of
-candidate months, not a measured policy effect.
+top five includes April, June, or September; April + June ranks first (ROI
+index 76.433, against 73.293 for fifth place). It is a shortlist of candidate
+months, not a measured policy effect.
 
 **Recognition and role.** Gold Prize, 2025 Industry-Academic Capstone Design
-Competition, Incheon National University (1 Jul 2025). Team lead of four
-students (final report cover).
+Competition, Incheon National University (1 Jul 2025). Team lead of a
+four-person team.
 
 ## Data and assumptions
 
@@ -25,10 +25,10 @@ students (final report cover).
   category spending, CD yield, consumer-sentiment (CSI) indices, cashback
   rates, and top-up/payment counts; 2020–2023 training data (not included).
 - A low-pass filter (LPF) separates trend from noise. Hurst exponents of
-  0.79–0.86 (notebook `03_feature_engineering`) indicate persistent series,
-  supporting lagged trend features.
+  0.79–0.86 across districts (notebook `03_feature_engineering`) indicate
+  persistent series, supporting lagged trend features.
 - Context: after the July 2022 cashback cut from 10% to 5%, August spending
-  fell 24.92% month on month (report figure).
+  fell 24.9% month on month.
 
 ## Scenario design
 
@@ -43,9 +43,9 @@ students (final report cover).
 
 ## Results
 
-Top five combinations (final report, section 3.7):
+Top five combinations:
 
-| Rank | Raised months | Report ROI index |
+| Rank | Raised months | ROI index |
 |---:|---|---:|
 | 1 | April, June | 76.433 |
 | 2 | April, September | 76.154 |
@@ -54,30 +54,33 @@ Top five combinations (final report, section 3.7):
 | 5 | June, November | 73.293 |
 
 Forecast error behind the simulation (LightGBM, trained on days before 2024 and
-scored on 2024 days; report table, notebook `99_draft_2`):
+scored on 2024 days; notebook `99_draft_2`):
 
 | Scope | MAPE |
 |---|---|
-| 20 district × condition segments | 8.06% to 66.22% |
+| 20 district × condition segments | 8.1% to 66.2% |
 | Segments at or below 15% | 13 of 20 |
-| Largest errors (10%/10% condition) | Ganghwa-gun 66.22%, Yeonsu-gu 44.26% |
+| Largest errors (10%/10% condition) | Ganghwa-gun 66.2%, Yeonsu-gu 44.3% |
 
-The report summarises this as "within 10–15% for most regions".
+The report summarizes this as "within 10–15% for most regions".
 
 ![Incheon e-Eum spending, budget, and sign-up trend](images/problem_definition.png)
 
-*Figure 1. Spending, budget, and new sign-ups, 2020–2024 (final report).*
+*Figure 1. Spending, budget, and new sign-ups, 2020–2024.*
 
 ![Actual versus predicted daily spending for one exploratory configuration](images/05_20.png)
 
 *Figure 2. Exploratory CatBoost, Bupyeong-gu, 10%/10% condition (notebook
-`05_prediction`): RMSE 173,590,932.20 (KRW per day), MAPE 5.66% on the last
-20% of the series. One of 40 exploratory configurations, not the report's LightGBM.*
+`05_prediction`): RMSE ≈ KRW 174M per day, MAPE 5.7% on the last 20% of the
+series. One of 40 exploratory configurations, not the LightGBM models above;
+the same window was used for early stopping and scoring, so the score is
+optimistic.*
 
-## Run
+## How to run
 
-The CLI is a portable baseline (per-district CatBoost, chronological 80/20
-split), not the report's LightGBM models or ROI simulation.
+The CLI is a baseline pipeline that runs on new data as is (per-district
+CatBoost, chronological 80/20 split), not the LightGBM models or ROI
+simulation above.
 
 ```powershell
 pip install -r requirements.txt
@@ -95,25 +98,21 @@ lists all options.
 ## Repository layout
 
 ```text
-run_pipeline.py            # Maintained CLI entry point
+run_pipeline.py            # CLI entry point
 src/                       # Preprocessing, features, per-district CatBoost training
 notebooks/                 # Original analysis: 03 features/Hurst, 05 and 99_draft_2 models, 06 ROI
 reports/                   # Final report and presentation (Korean)
 images/                    # Figures exported from notebooks and the report
-docs/PROJECT_REVIEW.md     # Method review and priorities
 ```
 
 ## Limitations
 
-- Not causal: the ranking assumes the 10%-condition model describes a rate increase; the 24.92% drop is a before/after change.
+- Not causal: the ranking assumes the 10%-condition model describes a rate increase; the 24.9% drop is a before/after change.
 - Features include same-day payment and top-up counts, so MAPE measures fit given that day's activity, not an advance forecast.
 - The top five ROI values are within about 4% of each other, smaller than most segment-level forecast errors.
-- The ROI table is report-stated and cannot be regenerated without the raw data; without the merged CSV only `--help` runs.
-- The Figure 2 CatBoost score used the same window for early stopping and scoring, so it is optimistic.
-- No licence file (all rights reserved by default); the report PDFs are team competition documents.
+- The merged training data is not included, so the ROI table cannot be regenerated from this repository.
 
 ## Links
 
 - [Case study: decisions and trade-offs](PORTFOLIO.md)
-- [Project review](docs/PROJECT_REVIEW.md)
 - Final report (Korean): `reports/2025년 산학 캡스톤디자인 최종 결과보고서_산경만지회.pdf`
