@@ -5,13 +5,13 @@
 ## Summary
 
 Incheon's e-Eum card cashback raises local spending, but the budget keeps
-shrinking. Our team forecast daily spending for each of Incheon's 10 districts
+shrinking. The team forecast daily spending for each of Incheon's 10 districts
 and simulated every way of choosing two higher-cashback months under a KRW 200
-billion budget: C(12,2) = 66 combinations. In the report, every one of the top
-five combinations includes April, June, or September, and April + June ranks
-first (ROI index 76.433). The project received the Gold Prize at the 2025
-Industry-Academic Capstone Design Competition, Incheon National University
-(1 Jul 2025). It is a scenario comparison, not causal policy evidence.
+billion budget: C(12,2) = 66 combinations. Every one of the top five includes
+April, June, or September; April + June ranks first (report ROI index 76.433).
+Gold Prize, 2025 Industry-Academic Capstone Design Competition, Incheon
+National University (1 Jul 2025). Team lead of four students (final report
+cover).
 
 ## Challenge
 
@@ -19,50 +19,39 @@ Industry-Academic Capstone Design Competition, Incheon National University
   August spending fell 24.92% month on month. A uniform rate was becoming
   unaffordable, so the question became *when* to spend, not *how much*.
 - **Indirect data.** Individual transactions and merchant-level sales were not
-  available. The analysis relies on district totals plus demographic, category,
-  and macro indicators, as the report itself notes.
+  available; the analysis uses district totals plus demographic, category, and
+  macro indicators.
 - **Uneven districts.** Large districts and rural counties (Ganghwa-gun,
   Ongjin-gun) behave differently, so one average response would mislead.
-
-## My contribution
-
-Four-student team; the final report lists me as team lead. The report does not
-record a per-person split of the analysis, so this page describes team
-decisions.
 
 ## Decisions
 
 **1. One model with a rate feature, or separate models per cashback condition.**
-Options: a single model with cashback rate as an input, or one model per
-condition. We chose separate LightGBM models for the 10%/5% and 10%/10%
-merchant-rate conditions. The report's reasoning: spending responds
-differently under different policy conditions, and a single model would average
-those responses together. The data also held only a few discrete rate regimes,
-so a smooth rate effect could not be learned. The cost
-is less training data per model, which shows in the error spread: MAPE ranges
-from 8.06% to 66.22% across the 20 district × condition segments, worst for
-Ganghwa-gun (66.22%) and Yeonsu-gu (44.26%) under 10%/10%.
+Choice: separate LightGBM models for the 10%/5% and 10%/10% merchant-rate
+conditions. Why: spending responds differently under each condition, a single
+model would average those responses, and the data held only a few discrete
+rate regimes, too few to learn a smooth rate effect. Cost: less training data
+per model. MAPE ranges from 8.06% to 66.22% across the 20 district × condition
+segments, worst for Ganghwa-gun (66.22%) and Yeonsu-gu (44.26%) under 10%/10%.
 
 **2. Pick the peak-spending months, or enumerate all combinations.**
-Options: raise cashback in the months with the highest forecast spending, or
-score every two-month pair. We enumerated all 66 because the outcome depends on
-interactions. Each month's prediction feeds the next, and every raised month
-uses up budget. The cost is that the ranking now depends on the 10%-condition
-model being right about months it never saw at that rate.
+Choice: score all 66 pairs. Why: each month's prediction feeds the next and
+every raised month uses up budget, so months interact. Cost: the ranking
+depends on the 10%-condition model being right about months it never saw at
+that rate.
 
 **3. Rank by spending, or by spending per cashback won.**
-Options: total predicted spending, or a return ratio. The report's ROI index
-divides predicted spending growth by cashback paid and scales it by the share
-of budget left. That fits the budget-holder's question better than gross
-spending. The cost is a custom index that is hard to compare with other studies.
-It also produces close calls: the top five are within about 4% of each other.
+Choice: the report's ROI index, which divides predicted spending growth by
+cashback paid and scales it by the share of budget left. Why: it answers the
+budget-holder's question better than gross spending. Cost: a custom index that
+is hard to compare with other studies, and close calls: the top five are
+within about 4% of each other.
 
-**4. How to validate the forecasts.** The final models were trained on days
-before 2024 and scored on 2024 days. A random split would mix future days into
-training. An earlier CatBoost exploration (RMSE 173,590,932.20 and MAPE 5.66%
-for Bupyeong-gu under 10%/10%) used the same window for early stopping and
-scoring, so its score is optimistic. I keep it only as a labelled exploratory
-figure.
+**4. Validate forecasts chronologically.** The final models train on days
+before 2024 and score on 2024 days, so no future days leak into training. An
+earlier CatBoost exploration (RMSE 173,590,932.20 and MAPE 5.66% for
+Bupyeong-gu under 10%/10%) used the same window for early stopping and
+scoring, so it is shown only as a labelled exploratory figure.
 
 ## Results
 
@@ -74,26 +63,22 @@ figure.
 | Forecast MAPE | 8.06% to 66.22%; 13 of 20 segments at or below 15% | LightGBM, 2024 holdout, report table |
 | Hurst exponent | 0.79 to 0.86 across districts | Notebook `03_feature_engineering` |
 
-The report summarises forecast error as "within 10–15% for most regions". The
-table above gives the full spread.
+The report summarises forecast error as "within 10–15% for most regions"; the
+table gives the full spread.
 
-## What the result does not show
+## Limitations
 
-- No causal effect: the simulation assumes the 10%-condition model describes a
-  counterfactual rate increase. No experiment or quasi-experiment tested that.
-- Same-day payment and top-up counts are model inputs, so MAPE describes fit
-  given that day's activity, not an advance forecast.
-- The top-five gaps are smaller than most segment-level errors. The holiday-
-  adjacent and district-differentiated suggestions are hypotheses to test.
-- The raw data is not in the repository, so the ROI table is report-stated and
-  not regenerated here.
+- Not causal: the simulation assumes the 10%-condition model describes a counterfactual rate increase; no experiment or quasi-experiment tested that.
+- Same-day payment and top-up counts are inputs, so MAPE describes fit given that day's activity, not an advance forecast.
+- Top-five gaps are smaller than most segment-level errors; the holiday-adjacent and district-differentiated suggestions are hypotheses to test.
+- The ROI table is report-stated and not regenerated here; the raw data is not in the repository.
 
-## What I would do next
+## Next steps
 
-- Remove same-day activity counts and re-score as a true forecast, with a
-  seasonal-naive baseline (same day last year) for comparison.
-- Bootstrap the forecast residuals through the simulation to put intervals on
-  each combination's ROI, and check whether the top five actually differ.
+- Remove same-day activity counts and re-score as a true forecast, against a
+  seasonal-naive baseline (same day last year).
+- Bootstrap forecast residuals through the simulation to put intervals on each
+  combination's ROI, and check whether the top five actually differ.
 - Use the 2023 May and September temporary increases as a difference-in-
   differences check of the "raise before a rebound" hypothesis.
 
