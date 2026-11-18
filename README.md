@@ -133,3 +133,7 @@ images/                    # Figures exported from notebooks and the report
 
 - [Case study: decisions and trade-offs](PORTFOLIO.md)
 - Final report (Korean): `reports/2025년 산학 캡스톤디자인 최종 결과보고서_산경만지회.pdf`
+
+## License
+
+No open-source license: the code and documents are public for review; reuse requires permission.
