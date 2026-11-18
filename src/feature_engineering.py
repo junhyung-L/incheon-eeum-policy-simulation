@@ -143,44 +143,5 @@ def create_spending_change_rate(df, target_col="업종별_인천e음카드_데�
     
     return df
 
-def create_prediction_features(df, target_col="전체금액", date_col="일자"):
-    """
-    Create features specific for prediction (rolling windows, lags, time features).
-    This logic is extracted from 05_prediction.ipynb.
-    """
-    df = df.copy()
-    df[date_col] = pd.to_datetime(df[date_col])
-    df = df.sort_values(by=['지역', date_col])
-    
-    processed_dfs = []
-    for region, data in df.groupby('지역'):
-        temp = data.copy()
-        
-        # Rolling features
-        temp['ma_7'] = temp[target_col].rolling(window=7, min_periods=1).mean()
-        # Note: Original code used window=15 for 'ma_30' and window=30 for 'ma_90'
-        # Preserving this behavior but adding comments
-        temp['ma_30'] = temp[target_col].rolling(window=15, min_periods=1).mean() 
-        temp['ma_90'] = temp[target_col].rolling(window=30, min_periods=1).mean()
-        temp['std_7'] = temp[target_col].rolling(window=7, min_periods=1).std()
-        temp['range_7'] = temp[target_col].rolling(window=7).max() - temp[target_col].rolling(window=7).min()
-        
-        # Lag features
-        temp['lag_1'] = temp[target_col].shift(1)
-        temp['lag_3'] = temp[target_col].shift(3)
-        temp['lag_30'] = temp[target_col].shift(30)
-        
-        # Change rate
-        temp['change_rate'] = temp[target_col].pct_change().fillna(0)
-        
-        # Time features
-        temp['month'] = temp[date_col].dt.month
-        temp['day_of_week'] = temp[date_col].dt.dayofweek
-        temp['is_weekend'] = temp['day_of_week'].isin([5, 6]).astype(int)
-        
-        processed_dfs.append(temp)
-        
-    return pd.concat(processed_dfs, ignore_index=True).fillna(0)
-
 if __name__ == "__main__":
     print("Feature engineering module loaded.")

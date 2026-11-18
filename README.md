@@ -84,11 +84,16 @@ optimistic.*
 ## How to run
 
 The CLI is a baseline pipeline that runs on new data as is (per-district
-CatBoost, chronological 80/20 split), not the LightGBM models or ROI
-simulation above.
+CatBoost), not the LightGBM models or ROI simulation above. Each district's
+days are split in time order: the last 20% is scored (RMSE, MAPE) and is not
+used for training or early stopping; the last 10% of the remaining training
+period is the early-stopping set, and the model fits on the rest. Unlike the
+Figure 2 exploration, its scores are therefore not tuned on the scoring window.
 
 ```powershell
 pip install -r requirements.txt
+
+python scripts/smoke_test.py   # synthetic two-district run, checks the split
 
 python run_pipeline.py `
   --input-csv data\merged.csv `
@@ -97,8 +102,10 @@ python run_pipeline.py `
   --target-col "<spending target column>"
 ```
 
-Writes features, per-district metrics, and models to `results/`; `--help`
-lists all options. The notebooks ran on Google Colab (Python 3.11: `02`, `03`,
+Writes features, per-district metrics (row counts per split, best iteration,
+RMSE, MAPE), and models to `results/`; `--help` lists all options. The smoke
+test needs no data and falls back to a recording stand-in when catboost is not
+installed. The notebooks ran on Google Colab (Python 3.11: `02`, `03`,
 `99_draft_2`) and a local Python 3.12.4 environment (`01`, `04`–`08`).
 `requirements.txt` pins numpy, scipy, and scikit-learn to the versions the
 `03` notebook records; pandas is pinned to the 2026-11 review environment and
@@ -108,6 +115,7 @@ catboost is unpinned, because their original versions were not recorded.
 
 ```text
 run_pipeline.py            # CLI entry point
+scripts/smoke_test.py      # Synthetic-data check of the CLI training split
 src/                       # Preprocessing, features, per-district CatBoost training
 notebooks/                 # Original analysis: 03 features/Hurst, 05 and 99_draft_2 models, 06 ROI
 reports/                   # Final report and presentation (Korean)

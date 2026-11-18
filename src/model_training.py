@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from .config import RANDOM_SEED, VALIDATION_FRACTION
+from .config import EARLY_STOPPING_FRACTION, RANDOM_SEED, VALIDATION_FRACTION
 
 
 def _safe_name(value: object) -> str:
@@ -24,7 +24,14 @@ def train_and_evaluate_by_region(
     target_col: str,
     output_model_dir: Path | None = None,
 ) -> pd.DataFrame:
-    """Fit one chronological CatBoost holdout model per region and return metrics."""
+    """Fit one chronological CatBoost holdout model per region and return metrics.
+
+    Each region's rows are sorted by date and split in time order:
+    fit (first ~72%) | early stopping (last 10% of the training period, ~8%) |
+    validation (last 20%). Early stopping sees only the early-stopping slice, so
+    RMSE/MAPE on the validation slice come from rows that neither the fit nor
+    early stopping saw.
+    """
     try:
         from catboost import CatBoostRegressor, Pool
     except ImportError as exc:
@@ -41,17 +48,23 @@ def train_and_evaluate_by_region(
         categorical = group[features].select_dtypes(include=["object", "string", "category"]).columns.tolist()
         split = int(len(group) * (1 - VALIDATION_FRACTION))
         train, valid = group.iloc[:split], group.iloc[split:]
+        stop_rows = max(1, int(len(train) * EARLY_STOPPING_FRACTION))
+        fit, stop = train.iloc[:-stop_rows], train.iloc[-stop_rows:]
         model = CatBoostRegressor(
             iterations=1000, learning_rate=0.03, depth=6, loss_function="RMSE",
             eval_metric="RMSE", random_seed=RANDOM_SEED, early_stopping_rounds=50, verbose=False,
         )
-        model.fit(Pool(train[features], train[target_col], cat_features=categorical), eval_set=Pool(valid[features], valid[target_col], cat_features=categorical))
+        model.fit(
+            Pool(fit[features], fit[target_col], cat_features=categorical),
+            eval_set=Pool(stop[features], stop[target_col], cat_features=categorical),
+        )
         prediction = model.predict(valid[features])
         actual = valid[target_col].to_numpy()
         nonzero = actual != 0
         rows.append({
-            "region": region, "status": "trained", "rows": len(group), "train_rows": len(train),
-            "validation_rows": len(valid), "rmse": mean_squared_error(actual, prediction) ** 0.5,
+            "region": region, "status": "trained", "rows": len(group), "fit_rows": len(fit),
+            "early_stopping_rows": len(stop), "validation_rows": len(valid),
+            "best_iteration": model.get_best_iteration(), "rmse": mean_squared_error(actual, prediction) ** 0.5,
             "mape_percent": float(np.mean(np.abs((actual[nonzero] - prediction[nonzero]) / actual[nonzero])) * 100) if nonzero.any() else np.nan,
         })
         if output_model_dir:

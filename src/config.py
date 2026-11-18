@@ -10,6 +10,9 @@ DATA_DIR = Path(os.getenv("EEUM_DATA_DIR", PROJECT_ROOT / "data"))
 RESULTS_DIR = Path(os.getenv("EEUM_RESULTS_DIR", PROJECT_ROOT / "results"))
 RANDOM_SEED = 42
 VALIDATION_FRACTION = 0.20
+# Tail of the training period (after the validation split) held out for CatBoost
+# early stopping, so the validation window is used only for scoring.
+EARLY_STOPPING_FRACTION = 0.10
 
 
 def result_path(filename: str) -> Path:

@@ -56,10 +56,12 @@
 
 ## 실행 방법
 
-CLI는 데이터만 바꿔 실행할 수 있는 기준 파이프라인(군·구별 CatBoost, 시간순 80/20 분할)이며, 위의 LightGBM 모델이나 ROI 시뮬레이션이 아닙니다.
+CLI는 데이터만 바꿔 실행할 수 있는 기준 파이프라인(군·구별 CatBoost)이며, 위의 LightGBM 모델이나 ROI 시뮬레이션이 아닙니다. 군·구마다 날짜순으로 나눠 마지막 20%로 RMSE·MAPE를 평가하고, 이 구간은 학습과 early stopping에 쓰지 않습니다. 나머지 학습 기간의 마지막 10%를 early stopping 구간으로, 그 앞부분을 학습에 씁니다. 따라서 그림 2의 탐색과 달리 평가 구간에 맞춰 조정된 점수가 아닙니다.
 
 ```powershell
 pip install -r requirements.txt
+
+python scripts/smoke_test.py   # 합성 2개 구 데이터로 분할 확인
 
 python run_pipeline.py `
   --input-csv data\merged.csv `
@@ -68,12 +70,13 @@ python run_pipeline.py `
   --target-col "<소비 타깃 컬럼>"
 ```
 
-피처, 군·구별 지표, 모델을 `results/`에 저장하며, 전체 옵션은 `--help`로 확인합니다. 노트북은 Google Colab(Python 3.11: `02`, `03`, `99_draft_2`)과 로컬 Python 3.12.4 환경(`01`, `04`~`08`)에서 실행했습니다. `requirements.txt`는 numpy·scipy·scikit-learn을 `03` 노트북에 기록된 버전으로 고정했고, 원래 버전 기록이 없는 pandas는 2026-11 점검 환경 버전으로 고정, catboost는 고정하지 않았습니다.
+피처, 군·구별 지표(분할별 행 수, best iteration, RMSE, MAPE), 모델을 `results/`에 저장하며, 전체 옵션은 `--help`로 확인합니다. 스모크 테스트는 데이터가 필요 없고, catboost가 없으면 기록용 대체 모델로 분할만 확인합니다. 노트북은 Google Colab(Python 3.11: `02`, `03`, `99_draft_2`)과 로컬 Python 3.12.4 환경(`01`, `04`~`08`)에서 실행했습니다. `requirements.txt`는 numpy·scipy·scikit-learn을 `03` 노트북에 기록된 버전으로 고정했고, 원래 버전 기록이 없는 pandas는 2026-11 점검 환경 버전으로 고정, catboost는 고정하지 않았습니다.
 
 ## 저장소 구조
 
 ```text
 run_pipeline.py            # CLI 진입점
+scripts/smoke_test.py      # 합성 데이터로 CLI 학습 분할 확인
 src/                       # 전처리, 피처, 군·구별 CatBoost 학습
 notebooks/                 # 원본 분석: 03 피처·Hurst, 05·99_draft_2 모델, 06 ROI
 reports/                   # 최종 보고서와 발표 자료
