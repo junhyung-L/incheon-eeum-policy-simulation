@@ -11,9 +11,14 @@ two months of 2024, which two months buy the most consumption per won of
 cashback?
 
 **Result.** Compares all C(12,2) = 66 two-month combinations. Every one of the
-top five includes April, June, or September; April + June ranks first (ROI
-index 76.433, against 73.293 for fifth place). It is a shortlist of candidate
-months, not a measured policy effect.
+top five includes April, June, or September; April + June ranks first with an
+ROI index (predicted spending growth relative to cashback paid, scaled by the
+share of budget remaining) of 76.433, against 73.293 for fifth place.
+
+**Scope.** A shortlist of candidate months, not a measured policy effect; the
+top-five spread (about 4%) is below every segment's forecast error (MAPE 8.1%
+to 66.2%). Training data not included; `python run_pipeline.py --help` shows
+the baseline CatBoost CLI, not the ROI simulation.
 
 **Recognition and role.** Gold Prize, 2025 Industry-Academic Capstone Design
 Competition, Incheon National University (1 Jul 2025). Team lead of a
